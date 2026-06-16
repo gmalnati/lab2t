@@ -23,7 +23,7 @@ class PricingService {
 
         val rate = when {
             subtotal >= BigDecimal(200) -> BigDecimal("0.20")
-            subtotal >= BigDecimal(100) -> BigDecimal("0.10")
+            subtotal > BigDecimal(100) -> BigDecimal("0.10")
             else -> BigDecimal.ZERO
         }
 
