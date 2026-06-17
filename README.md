@@ -5,6 +5,11 @@ GitHub Actions. The whole lab revolves around **one piece of business logic**
 (`PricingService.applyDiscount`) so learners can stay focused on the *pipeline*,
 not the domain.
 
+> **This is the `workshop-application` repo.** It's the application you'll
+> containerize and ship in the later labs: Lab 3 builds this into an image,
+> pushes it to `registry.ff26.it`, and deploys it via Argo CD; Lab 4 wires its
+> secrets through Vault. A `Dockerfile` is included for exactly that purpose.
+
 ## The service
 
 `POST /quote` with a subtotal, get back a discounted total:
@@ -29,7 +34,7 @@ The tier boundaries (100, 200) are where the interesting tests — and bugs — 
 ## Prerequisites
 
 - JDK 17+ installed (`java -version`)
-- A GitHub account and an empty GitHub repo to push this into
+- A GitHub account and an empty GitHub repo named **`workshop-application`** to push this into
 - No local Gradle install needed — the project ships with the Gradle wrapper (`./gradlew`)
 
 ## Run it locally
@@ -54,7 +59,7 @@ git init
 git add .
 git commit -m "CI lab: Spring Boot/Kotlin pricing service"
 git branch -M main
-git remote add origin git@github.com:<you>/ci-lab.git
+git remote add origin git@github.com:<you>/workshop-application.git
 git push -u origin main
 ```
 
@@ -206,11 +211,35 @@ tested automatically, and broken changes cannot reach `main`.
 
 ---
 
+## Step 6 (bridge to Lab 3) — Containerize it
+
+A `Dockerfile` ships with this repo: a multi-stage build that produces the
+Spring Boot fat jar, then copies it into a tiny JRE-only runtime image (the
+Block 4 pattern). Build and smoke-test it locally:
+
+```bash
+docker build -t workshop-application:dev .
+docker run --rm -p 8080:8080 workshop-application:dev
+# then, in another shell:
+curl -s -X POST localhost:8080/quote \
+  -H 'Content-Type: application/json' -d '{"subtotal": 150.00}'
+# {"subtotal":150.00,"total":135.00}
+```
+
+In **Lab 3** you'll tag this image for the shared registry
+(`registry.ff26.it/workshop-application:ec<your-number>-<git-sha>`), push it,
+and deploy it via Argo CD. Lab 3's appendix shows how to make CI build, push,
+and bump the GitOps config repo automatically on every commit here.
+
+---
+
 ## Project layout
 
 ```
-ci-lab/
+workshop-application/
 ├─ .github/workflows/ci.yml          # the pipeline (Step 1; upgraded in Step 4)
+├─ Dockerfile                        # multi-stage build (used in Lab 3)
+├─ .dockerignore
 ├─ build.gradle.kts                  # Spring Boot + Kotlin + JUnit 5
 ├─ settings.gradle.kts
 ├─ gradlew / gradlew.bat             # Gradle wrapper (no local Gradle needed)
