@@ -1,0 +1,4 @@
+# Keep the Gradle wrapper script LF-only so it stays runnable on Linux/macOS and
+# inside the Docker build, even when cloned on Windows. Keep the .bat as CRLF.
+gradlew      text eol=lf
+*.bat        text eol=crlf
